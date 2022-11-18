@@ -74,4 +74,9 @@ public class Planet {
         xxPos = xxPos + t * xxVel;
         yyPos = yyPos + t * yyVel;
     }
+
+    public void draw() {
+        StdDraw.picture(xxPos, yyPos, "images/" + imgFileName);
+    }
+
 }
