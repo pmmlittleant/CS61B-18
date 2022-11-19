@@ -86,7 +86,9 @@ public class IntList {
             A.rest = B;
             return A;
         }
-        return new IntList(A.first,IntList.dcatenate(A.rest, B));
+        IntList rest = dcatenate(A.rest, B);
+        A.rest = rest;
+        return A;
     }
 
     /**
@@ -95,13 +97,12 @@ public class IntList {
      */
     public static IntList catenate(IntList A, IntList B) {
         //TODO:  fill in method
-        return null;
+        if (A == null) {
+            return B;
+        }
+        return new IntList(A.first,dcatenate(A.rest, B));
+
     }
-
-
-
-
-
 
 
 
