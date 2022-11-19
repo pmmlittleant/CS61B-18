@@ -31,6 +31,7 @@ public class NBody {
         double radius = readRadius(filename);
         String background = "images/starfield.jpg";
 
+        StdAudio.play("audio/2001.mid");
         StdDraw.enableDoubleBuffering();
         StdDraw.setScale(-radius, radius);
         double time = 0;
