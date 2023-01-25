@@ -184,9 +184,8 @@ public class GraphDB {
      *  we can reasonably assume this since typically roads are connected.
      */
     private void clean() {
-        Map<Long, Node> temp = vertices;
         vertices = cleaned;
-        cleaned = temp;
+
     }
 
     /**
