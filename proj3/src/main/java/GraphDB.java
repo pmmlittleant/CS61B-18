@@ -22,14 +22,15 @@ public class GraphDB {
      * creating helper classes, e.g. Node, Edge, etc. */
     private Map<Long, Node> vertices = new HashMap<>();
     private Map<Long, Node> cleaned = new HashMap<>(); // nodes that are all connected.
-    private Map<String, List<Long>> locations = new HashMap<>(); // mapping from location names(cleaned) to list of nodes ids.
+    private final Map<String, List<Node>> locations = new HashMap<>(); // mapping from location names(cleaned) to list of nodes.
+    private locationTrie locaTrie = new locationTrie();
     protected static class Node {
 
-        private long id;
-        private double lat;
-        private double lon;
-        private String name;
-        private LinkedList<Edge> edges = new LinkedList<>();
+        protected long id;
+        protected double lat;
+        protected double lon;
+        protected String name;
+        protected LinkedList<Edge> edges = new LinkedList<>();
 
         public Node(String id, String lon, String lat) {
             this.id = Long.parseLong(id);
@@ -68,6 +69,16 @@ public class GraphDB {
         }
 
     }
+    /**Return a list of full location name which its cleaned name matches cleaned prefix.*/
+    public List<String> getLocByPrefix(String prefix) {
+        List<String> fullname = new ArrayList<>();
+        for (String s : locaTrie.getKeyByPrefix(prefix)) {
+            for (Node n : getVerticesByName(s)) {
+                fullname.add(n.name);
+            }
+        }
+        return fullname;
+    }
 
     /**Return the edge's roadName between two nodes*/
     public String getRoadName(long n, long v) {
@@ -88,39 +99,50 @@ public class GraphDB {
         vertices.put(id, nd);
     }
 
-    /** Connect two vertexes v1, v2, with edge name in the graph. and add them to cleaned*/
-    public void connectVertice(long v1, long v2, String  name) {
+    /** Connect two vertexes v1, v2, with edge name in the graph. and add them to cleaned
+     *  in addition if v1, v2 has name(is a location) add its cleaned name to Trie and locations map.*/
+    public void connectVertice(long v1, long v2, String roadname) {
         if (v1 != v2 && vertices.containsKey(v1) && vertices.containsKey(v2)) {
             Node n1 = vertices.get(v1);
             Node n2 = vertices.get(v2);
-            Edge e = new Edge(n1, n2, name);
+            Edge e = new Edge(n1, n2, roadname);
             n1.addEdge(e);
             n2.addEdge(e);
             if (n1.hasNeighbors()) {
                 cleaned.put(v1, n1);
+
             }
             if (n2.hasNeighbors()) {
                 cleaned.put(v2, n2);
             }
         }
     }
-    /** Add a location to the node( add a name to the node)and update locations map.*/
+
+    /** Add a location to the node( add a name to the node)*/
     public void addLocation(long v, String name) {
         if (vertices.containsKey(v)) {
             Node n = vertices.get(v);
             n.addName(name);
-            List<Long> locs = locations.getOrDefault(cleanString(name), new ArrayList<>());
-            locs.add(v);
-            locations.put(cleanString(name), locs);
+            updateTrieAndMap(n);
         }
+    }
+    private void updateTrieAndMap(Node n) {
+        if (n.name == null) {
+            return;
+        }
+        List<Node> locs = locations.getOrDefault(cleanString(n.name), new ArrayList<>());
+        locs.add(n);
+        locations.put(cleanString(n.name), locs);
+        locaTrie.put(cleanString(n.name));
+
     }
     /** Return name string of a node (uncleaned)*/
     public String getLocation(long v) {
         String name = vertices.get(v).name;
         return name;
     }
-    /** Return a list of nodes id which match paramater name */
-    public List<Long> getVerticesByName(String name) {
+    /** Return a list of nodes  which has cleaned name in locations map.*/
+    public List<Node> getVerticesByName(String name) {
         if (locations.containsKey(cleanString(name))) {
             return locations.get(cleanString(name));
         }
@@ -162,7 +184,9 @@ public class GraphDB {
      *  we can reasonably assume this since typically roads are connected.
      */
     private void clean() {
+        Map<Long, Node> temp = vertices;
         vertices = cleaned;
+        cleaned = temp;
     }
 
     /**

@@ -82,7 +82,6 @@ public class MapServer {
     private static List<Long> route = new LinkedList<>();
     /* Define any static variables here. Do not define any instance variables of MapServer. */
 
-
     /**
      * Place any initialization statements that will be run before the server main loop here.
      * Do not place it in the main function. Do not place initialization code anywhere else.
@@ -285,7 +284,8 @@ public class MapServer {
      * cleaned <code>prefix</code>.
      */
     public static List<String> getLocationsByPrefix(String prefix) {
-        return new LinkedList<>();
+        String cleanPrefix = GraphDB.cleanString(prefix);
+        return graph.getLocByPrefix(cleanPrefix);
     }
 
     /**
@@ -303,17 +303,18 @@ public class MapServer {
     public static List<Map<String, Object>> getLocations(String locationName) {
         List<Map<String, Object>> loc = new LinkedList<>();
         String qeury = GraphDB.cleanString(locationName);
-        for (long id : graph.getVerticesByName(qeury)) {
+        for (GraphDB.Node n : graph.getVerticesByName(qeury)) {
                 Map<String, Object> info = new HashMap<>();
-                info.put("lat", graph.lat(id));
-                info.put("lon", graph.lon(id));
-                info.put("name", graph.getLocation(id));
-                info.put("id", id);
+                info.put("lat", n.lat);
+                info.put("lon", n.lon);
+                info.put("name", n.name);
+                info.put("id", n.id);
                 loc.add(info);
-                System.out.println("find locations:" + graph.getLocation(id));
         }
         return loc;
     }
+
+
 
     /**
      * Validates that Rasterer has returned a result that can be rendered.
