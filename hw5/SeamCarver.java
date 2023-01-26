@@ -10,7 +10,7 @@ public class SeamCarver {
     private int w; // picture width
     private int h; // picture height
     public SeamCarver(Picture picture) {
-        p  = picture;
+        p = new Picture(picture);
         w = p.width();
         h = p.height();
     }
@@ -126,13 +126,14 @@ public class SeamCarver {
             if (cost[i][j] < cost[i][j + 1]) {
                 return j;
             }
-            return j + 1;
+
+            return j + 1 == w ? j : j + 1;
         }
         if (j == w - 1) {
             if (cost[i][j] < cost[i][j - 1]) {
                 return j;
             }
-            return j - 1;
+            return j - 1 < 0 ? j : j - 1;
         }
         if (cost[i][j] <= cost[i][j - 1] && cost[i][j] <= cost[i][j + 1]) {
             return j;
@@ -166,14 +167,4 @@ public class SeamCarver {
         SeamRemover.removeVerticalSeam(p, seam);
     }
 
-    public static void main(String[] args) {
-        Picture picture = new Picture(args[0]);
-        StdOut.printf("%d-by-%d image\n", picture.width(), picture.height());
-        SeamCarver sc = new SeamCarver(picture);
-        for (int row = 0; row < sc.height(); row++) {
-            for (int col = 0; col < sc.width(); col++)
-                StdOut.println(sc.energy(col, row));
-            StdOut.println();
-        }
-    }
 }
